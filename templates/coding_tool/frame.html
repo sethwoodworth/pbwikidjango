@@ -3,9 +3,9 @@
 <title>HGSE PBwiki Coding Tool</title>
 <style type="text/css">
     {# controls the iframe size/shape #}
-    #results-box { /*height: 100%;*/ margin: 0; padding: 0; background: #5d87ac; }
+    #results-box { height: 100%; margin: 0; padding: 0; background: #5d87ac; }
     #results-box { margin: 0; padding: 0; }
-    #results { clear: both; width: 100%; border: solid #ccc; border-width: 1px 0px 0px 0px; overflow: auto; margin: 0; padding: 0; background-color: #fff; height: 100%; margin: 0; padding: 0; }
+    #pb_frame{ clear: both; width: 100%; border: solid #ccc; border-width: 1px 0px 0px 0px; overflow: auto; margin: 0; padding: 0; background-color: #fff; height: 100%; margin: 0; padding: 0; }
 
     {# override some defaults #}
     html{ margin: 0; padding: 0; }
@@ -35,10 +35,46 @@
 <link rel="stylesheet" href="/static/grid.css" type="text/css" media="screen, projection" />
 
 <script type="text/javascript">
-    function load_page(page){
-        var latest_rev = filtered_revisions[page].length-1;
-        var new_url = wiki_url + '/w/page/' + page + "?rev=" + latest_rev;
+    {% autoescape off %}
+    var revisions =  {{ revisions }};
+    var filtered_revisions = {{ revisions }};
+    var wiki_url = '{{ wiki_url }}';
+    var pb_wiki_create = '{{ wiki_creation }}';
+    {% endautoescape %}
+
+    function filter_by_days(days){
+        var date_int = Math.Floor((input*60*60*24));
+        var ceiling = parseInt(pb_wiki_create) + parseInt(date_int);
+        var intermediate = {};
+        for(var i in revisions){
+            if(revision[i][0] <= ceiling){
+                intermediate[i] = [];
+                for(var j in revision[i]){
+                    if(revision[i][j] <= ceiling){
+                        intermediate[i].push(revision[i][j])
+                    };
+                };
+            };
+        };
+        filtered_revisions = intermediate;
+        {# TODO: load a page here? #}
+    };
+
+    function load_page(page, rev_index){
+        if(!rev_index) {
+            // If not passing a rev_key, default to latest rev
+            rev_index = filtered_revisions[page].length-1
+        };
+        page_rev = filtered_revisions[page][rev_index];
+
+        var new_url = wiki_url + '/w/page/' + page + "?rev=" + page_rev;
         $("#pb_frame")[0].src = new_url;
+    };
+
+    function prev_rev(){
+        rev_index -= 1;
+        page = $("#page_list")[0].value;
+        load_page(page, rev_index);
     };
 
 </script>
@@ -68,7 +104,8 @@
             <div class="grid_1 ">
                 Filter by:
             </div>
-            <select id="filter_by_days_since" class="grid_3 omega"/>
+            <select id="filter_by_days_since" class="grid_3 omega"
+                onchange="filter_by_days(this.value)"/>
                 <option value="99999" class="grey_text">(Unfiltered)</option>
                 <option value="0">0</option>
                 <option value="1">1</option>
@@ -125,7 +162,7 @@
         </div> <!-- container_12 div-->
     </div> <!-- top_bar div-->
 
-    {{ pages }}
+    {{ revisions }}
 
     <div id="results-box">
         <iframe src="" id="pb_frame" name="pb_frame" frameborder="0" border="0"><p>THIS WONT WORK WITHOUT IFRAMES, go <a href="http://getfirefox.com">get firefox</a></p></iframe>

@@ -47,5 +47,6 @@ def view_wiki(request, wiki_url):
         kwarg = {'page': page}
         p_revs = api.api_call('GetPageRevisions', **kwarg)['revisions']
         revisions[page] = p_revs
+    print revisions
 
-    return render_to_response('coding_tool/frame.html', {'revisions': revisions, 'pages': page_list})
+    return render_to_response('coding_tool/frame.html', {'wiki_url': url, 'revisions': revisions, 'pages': page_list})
