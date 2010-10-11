@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>HGSE PBwiki Coding Tool</title>
+<style type="text/css">
+    {# controls the iframe size/shape #}
+    #results-box { /*height: 100%;*/ margin: 0; padding: 0; background: #5d87ac; }
+    #results-box { margin: 0; padding: 0; }
+    #results { clear: both; width: 100%; border: solid #ccc; border-width: 1px 0px 0px 0px; overflow: auto; margin: 0; padding: 0; background-color: #fff; height: 100%; margin: 0; padding: 0; }
+
+    {# override some defaults #}
+    html{ margin: 0; padding: 0; }
+    body{ font-size: 13px; font-color:#708699; margin: 0; padding: 0; font-family: Segoe UI,"Lucida Grande",Arial,"Liberation Sans", FreeSans, sans-serif; }
+    input, select{ padding: 0; margin: 0; border: 1px solid #708699; height: 19px; }
+
+    {# start applying local style#}
+    #top_bar { display: block; height: 85px; background: lightBlue; border-bottom: 1px solid black; font-size: 12px; font-weight: normal; text-align: left; color: black; padding-left: 0px; padding-top: 5px; overflow: auto; }
+    form{ margin: 0; padding: 0;}
+    h3 { margin: 0; padding: 0; }
+    #center_block { height: 75px; }
+    #page_list { background: white;}
+    #filter_by_days_since { background: white;}
+    .small_text { font-size: 0.8em; }
+    .big_text { font-size: 16px; font-weight: bold; color: #111;  }
+    .row { margin-top: 3px; }
+    .grey_text {   }
+    .button {
+        -moz-border-radius:3px 3px 3px 3px;
+        background-color:#4B88BE;
+        border-color:#708699;
+        height: 19px;
+        margin: 0px;
+    }
+    #row_three { margin-top: 10px; margin-bottom: 5px; height: 20px; }
+</style>
+<link rel="stylesheet" href="/static/grid.css" type="text/css" media="screen, projection" />
+
+
+<link type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/ui-darkness/jquery-ui.css" rel="stylesheet" />	
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/minified/jquery-ui.min.js"></script>
+<script type="text/javascript" src="datefmt.js"></script>
+
+{# TODO: remove this #}
+<!-- pre-populates the url field with a placeholder then removes it on click -->
+<script> function clearText(f){ if (f.defaultValue==f.value) f.value = "" } </script>
+
+
+
