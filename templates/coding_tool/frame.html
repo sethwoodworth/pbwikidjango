@@ -45,15 +45,15 @@
     var rev_index = 0;
 
     function filter_by_days(days){
-        var date_int = Math.Floor((input*60*60*24));
+        var date_int = Math.floor((days*60*60*24));
         var ceiling = parseInt(pb_wiki_create) + parseInt(date_int);
         var intermediate = {};
         for(var i in revisions){
-            if(revision[i][0] <= ceiling){
+            if(revisions[i][0] <= ceiling){
                 intermediate[i] = [];
-                for(var j in revision[i]){
-                    if(revision[i][j] <= ceiling){
-                        intermediate[i].push(revision[i][j])
+                for(var j in revisions[i]){
+                    if(revisions[i][j] <= ceiling){
+                        intermediate[i].push(revisions[i][j])
                     };
                 };
             };
@@ -63,9 +63,9 @@
     };
 
     function load_page(page, index){
-        if(!index) {
+        if(!index && index != 0 || index.length > 8) {
             // If not passing a rev_key/index, default to latest rev
-            index = filtered_revisions[page].length-1;
+            var index = filtered_revisions[page].length-1;
         };
         page_rev = filtered_revisions[page][index];
 
@@ -75,13 +75,37 @@
         rev_index = index;
     };
 
+    // TODO: next and prev clearly could be combined into one function
     function prev_rev(){
-        if(rev_index > 0){
-            index = rev_index-1;
-        };
         page = $("#page_list")[0].value;
+        // if there are any earlier revisions
+        if(rev_index > 0){
+            var index = rev_index-1;
+        };
         load_page(page, index);
     };
+
+    function next_rev(){
+        page = $("#page_list")[0].value;
+        // if the curent index is not the latest
+        if(rev_index < filtered_revisions[page].length-1){
+            index = rev_index+1;
+        };
+        load_page(page, index);
+    };
+
+    function last_rev(){
+        page = $("#page_list")[0].value;
+        index = filtered_revisions[page].length-1;
+        load_page(page, index);
+    };
+
+    function first_rev(){
+        page = $("#page_list")[0].value;
+        index = 0;
+        load_page(page, index);
+    };
+
 
 </script>
 
@@ -158,10 +182,10 @@
             </div>
 
             <div class="grid_6 prefix_1 omega">
-                <input class="button grid_1 alpha" type="button" value="<< First" onClick="first_revision()" id="first_button"/>
+                <input class="button grid_1 alpha" type="button" value="<< First" onClick="first_rev()" id="first_button"/>
                 <input class="button grid_1" type="button" value="< Older" onClick="prev_rev()" id="prev_button"/>
                 <input class="button grid_1" type="button" value="Newer >" onClick="next_rev()" id="next_button"/>
-                <input class="button grid_1" type="button" value="Last >>" onClick="last_revision()" id="last_button"/>
+                <input class="button grid_1" type="button" value="Last >>" onClick="last_rev()" id="last_button"/>
             </div>
         </form>
         </div> <!-- row_three -->
