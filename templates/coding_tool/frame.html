@@ -41,6 +41,8 @@
     var wiki_url = '{{ wiki_url }}';
     var pb_wiki_create = '{{ wiki_creation }}';
     {% endautoescape %}
+{# create variables with open scope for later #}
+    var rev_index = 0;
 
     function filter_by_days(days){
         var date_int = Math.Floor((input*60*60*24));
@@ -60,21 +62,25 @@
         {# TODO: load a page here? #}
     };
 
-    function load_page(page, rev_index){
-        if(!rev_index) {
-            // If not passing a rev_key, default to latest rev
-            rev_index = filtered_revisions[page].length-1
+    function load_page(page, index){
+        if(!index) {
+            // If not passing a rev_key/index, default to latest rev
+            index = filtered_revisions[page].length-1;
         };
-        page_rev = filtered_revisions[page][rev_index];
+        page_rev = filtered_revisions[page][index];
 
         var new_url = wiki_url + '/w/page/' + page + "?rev=" + page_rev;
         $("#pb_frame")[0].src = new_url;
+        // store current revision
+        rev_index = index;
     };
 
     function prev_rev(){
-        rev_index -= 1;
+        if(rev_index > 0){
+            index = rev_index-1;
+        };
         page = $("#page_list")[0].value;
-        load_page(page, rev_index);
+        load_page(page, index);
     };
 
 </script>
