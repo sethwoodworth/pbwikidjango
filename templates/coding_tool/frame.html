@@ -34,6 +34,14 @@
 </style>
 <link rel="stylesheet" href="/static/grid.css" type="text/css" media="screen, projection" />
 
+<script type="text/javascript">
+    function load_page(page){
+        var latest_rev = filtered_revisions[page].length-1;
+        var new_url = wiki_url + '/w/page/' + page + "?rev=" + latest_rev;
+        $("#pb_frame")[0].src = new_url;
+    };
+
+</script>
 
 <link type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/ui-darkness/jquery-ui.css" rel="stylesheet" />	
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
@@ -44,5 +52,86 @@
 <!-- pre-populates the url field with a placeholder then removes it on click -->
 <script> function clearText(f){ if (f.defaultValue==f.value) f.value = "" } </script>
 
+</head>
+
+
+
+<body>
+    <div style="background: lightBlue; border-bottom: 1px solid black;">
+    <div style="height:80px;" class="container_12">
+        <div id="row_one" class="row grid_12">
+            <form id="get_revs" name="get_revs">
+            <div class="grid_6 alpha">
+                <span class="big_text">PBwiki Coding Tool</span> by <a href="http://sethish.com">sethish</a> &amp; <a href="http://madebyparker.com">parker</a>
+            </div>
+
+            <div class="grid_1 ">
+                Filter by:
+            </div>
+            <select id="filter_by_days_since" class="grid_3 omega"/>
+                <option value="99999" class="grey_text">(Unfiltered)</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="7">7</option>
+                <option value="14">14</option>
+                <option value="30">30</option>
+                <option value="60">60</option>
+                <option value="100">100</option>
+                <option value="400">400</option>
+            </select>
+            <input class="button grid_2 omega" type="button" id="supernext_button" value="SuperNext>>" onClick="supernext()"/>
+        </div>
+
+        <div id="row_two" class="row grid_12">
+            <input value=" valid pbwiki url here" onfocus="clearText(this)" type="text" name="wiki_url" class="grid_4 alpha"/>
+            <input class="grid_1 button" type="button" value="Set Wiki" onClick="set_wiki()"/>
+
+            <div style="width: 70px; margin-left: 10px; float:left; display: inline;" class="prefix_1">
+                Wiki page: 
+            </div>
+            <select id="page_list" class="grid_3 omega grey_text" onchange="load_page(this.value);" />
+                <option value="empty">(Instructions)</option>
+                {% for page in pages %}
+                    <option value="{{ page }}">{{ page }}</option>
+                {% endfor %}
+
+            </select>
+            <input class="button grid_2" type="button" id="diff_button" value="Diff Mode" onClick="diff_click()"/>
+        </div>
+
+        <div id="row_three" class="row grid_12">
+
+            <div class="grid_2 alpha">
+                <span id="wiki_age">
+                    Created: 
+                <span id="wiki_age_timestamp">---- -- --</span>
+            </div>
+            <div class="grid_2 prefix_1">
+                <span id="rev_list">
+                    Revision: 
+                <span id="revision_number">X</span> of <span id="total_revision_count">X</span>
+                </span>
+                </span>
+            </div>
+
+            <div class="grid_6 prefix_1 omega">
+                <input class="button grid_1 alpha" type="button" value="<< First" onClick="first_revision()" id="first_button"/>
+                <input class="button grid_1" type="button" value="< Older" onClick="prev_rev()" id="prev_button"/>
+                <input class="button grid_1" type="button" value="Newer >" onClick="next_rev()" id="next_button"/>
+                <input class="button grid_1" type="button" value="Last >>" onClick="last_revision()" id="last_button"/>
+            </div>
+        </form>
+        </div> <!-- row_three -->
+        </div> <!-- container_12 div-->
+    </div> <!-- top_bar div-->
+
+    {{ pages }}
+
+    <div id="results-box">
+        <iframe src="" id="pb_frame" name="pb_frame" frameborder="0" border="0"><p>THIS WONT WORK WITHOUT IFRAMES, go <a href="http://getfirefox.com">get firefox</a></p></iframe>
+    </div>
+
+</body>
+</html>
 
 
