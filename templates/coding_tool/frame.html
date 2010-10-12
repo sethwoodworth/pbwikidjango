@@ -40,9 +40,11 @@
     var filtered_revisions = {{ revisions }};
     var wiki_url = '{{ wiki_url }}';
     var pb_wiki_create = '{{ wiki_creation }}';
+        {# earliest_date.format("UTC:yyyy-mm-dd") #}
     {% endautoescape %}
 {# create variables with open scope for later #}
     var rev_index = 0;
+    
 
     function filter_by_days(days){
         var date_int = Math.floor((days*60*60*24));
@@ -59,10 +61,22 @@
             };
         };
         filtered_revisions = intermediate;
-        {# TODO: load a page here? #}
+        load_page('FrontPage', filtered_revisions['FrontPage'].length-1);
+    };
+
+    function update_reporting(){
+        // takes no values, works off global, call at the /end/ of other func
+        page = $("#page_list")[0].value;
+        $('#revision_number').html(rev_index+1);
+        $('#total_revision_count').html(filtered_revisions[page].length);
     };
 
     function load_page(page, index){
+        if(page == 'not_a_real_page'){
+            // if (Instructions) chosen, load special stats page
+            // TODO: hacky, this throws a minor js error when [page] fails
+            $("#pb_frame")[0].src = '/code/stats/{{ wiki_title }}';
+        };
         if(!index && index != 0 || index.length > 8) {
             // If not passing a rev_key/index, default to latest rev
             var index = filtered_revisions[page].length-1;
@@ -71,8 +85,9 @@
 
         var new_url = wiki_url + '/w/page/' + page + "?rev=" + page_rev;
         $("#pb_frame")[0].src = new_url;
-        // store current revision
+        // store current revision globally
         rev_index = index;
+        update_reporting();
     };
 
     // TODO: next and prev clearly could be combined into one function
@@ -97,8 +112,7 @@
     function last_rev(){
         page = $("#page_list")[0].value;
         index = filtered_revisions[page].length-1;
-        load_page(page, index);
-    };
+        load_page(page, index); };
 
     function first_rev(){
         page = $("#page_list")[0].value;
@@ -157,7 +171,7 @@
                 Wiki page: 
             </div>
             <select id="page_list" class="grid_3 omega grey_text" onchange="load_page(this.value);" />
-                <option value="empty">(Instructions)</option>
+                <option value="not_a_real_page">(Instructions)</option>
                 {% for page in pages %}
                     <option value="{{ page }}">{{ page }}</option>
                 {% endfor %}
@@ -195,7 +209,7 @@
     {{ revisions }}
 
     <div id="results-box">
-        <iframe src="" id="pb_frame" name="pb_frame" frameborder="0" border="0"><p>THIS WONT WORK WITHOUT IFRAMES, go <a href="http://getfirefox.com">get firefox</a></p></iframe>
+        <iframe id="pb_frame" name="pb_frame" frameborder="0" border="0" src="/code/stats/{{ wiki_title }}"><p>THIS WONT WORK WITHOUT IFRAMES, go <a href="http://getfirefox.com">get firefox</a></p></iframe>
     </div>
 
 </body>

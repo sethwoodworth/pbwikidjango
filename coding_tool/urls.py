@@ -5,6 +5,7 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('',
     (r'^index$', 'pbwikidjango.coding_tool.views.index'),
     (r'^wiki/(?P<wiki_url>\w+)$', 'pbwikidjango.coding_tool.views.view_wiki'),
+    (r'^stats/(?P<wiki_url>\w+)$', 'pbwikidjango.coding_tool.views.save_wiki'),
     #(r'^post$', 'anderror.storetrace.views.post_report'),
 
 )
