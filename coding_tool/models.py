@@ -16,4 +16,10 @@ class Wiki(models.Model):
 class Revisions(models.Model):
     wiki = models.ForeignKey(Wiki)
     page = models.CharField(max_length=200)
-    revision = models.IntegerField()
+    rev_num = models.IntegerField()
+
+    def __unicode__(self):
+        return self.page + ' ' + str(self.rev_num)
+
+    class Meta:
+        unique_together = ("page", "rev_num")

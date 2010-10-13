@@ -38,6 +38,21 @@ def view_wiki(request, wiki_url):
     url = 'http://' + wiki_url + '.pbworks.com'
     print url
     api = PBwiki(url)
+
+    # query db then api for wiki info, stored, used in stats below
+    wiki = Wiki.objects.filter(wiki_url=wiki_url).all()
+    if not wiki:
+        wiki_info = api.api_call('GetWikiInfo')
+        # Store wiki info
+        wiki = Wiki()
+        wiki.wiki_url = wiki_url
+        wiki.pb_create_time = wiki_info['create_time']
+        wiki.pb_wikiname = wiki_info['wikiname']
+        wiki.pb_title = wiki_info['title']
+        wiki.pb_about = wiki_info['about']
+        wiki.pb_usercount = wiki_info['usercount']
+        wiki.pb_pagecount = wiki_info['pagecount']
+        wiki.save() 
     pb_pages = api.api_call('GetPages')
     page_list = []
     for page in pb_pages['pages']:
@@ -52,10 +67,11 @@ def view_wiki(request, wiki_url):
         for r in revisions[k]:
             if r < create:
                 create = r
+    revs = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
 
-    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': create, 'wiki_url': url, 'revisions': revisions, 'pages': page_list})
+    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': create, 'wiki_url': url, 'revisions': revisions, 'pages': page_list, 'revs': revs})
 
-def save_wiki(request, wiki_url):
+def stats(request, wiki_url):
     url = 'http://' + wiki_url + '.pbworks.com'
     print url
     api = PBwiki(url)
@@ -75,25 +91,32 @@ def save_wiki(request, wiki_url):
         wiki.pb_pagecount = wiki_info['pagecount']
         wiki.save()
 
-    pb_pages = api.api_call('GetPages')
-    page_list = []
-    for page in pb_pages['pages']:
-        page_list.append(page['name'])
-    revisions = {} 
-    for page in page_list:
-        kwarg = {'page': page}
-        p_revs = api.api_call('GetPageRevisions', **kwarg)['revisions']
-        revisions[page] = p_revs
+    rev_list = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
+    if not rev_list:
+        pb_pages = api.api_call('GetPages')
+        page_list = []
+        for page in pb_pages['pages']:
+            page_list.append(page['name'])
 
-        for rev in p_revs:
-            print rev
-            # store revision info(s)
-            rev = Revisions(
-                    wiki=wiki[0],
-                    page=page, 
-                    revision=rev,
-                    )
+        rev_list = {} 
+        for page in page_list:
+            kwarg = {'page': page}
+            p_revs = api.api_call('GetPageRevisions', **kwarg)['revisions']
+            rev_list[page] = p_revs
 
-    #db_revs = Revisions.objects.filter(wiki=db_wiki.id).all()
+            for rev in p_revs:
+                print rev
+                # store revision info(s)
+                rev = Revisions(wiki=wiki[0], page=page, rev_num=rev )
+                rev.save()
 
-    return render_to_response('coding_tool/stats.html', {'wiki': wiki, 'revisions': revisions})
+    else:
+        # TODO: make this much much better later
+        pass_d = {}
+        for x in rev_list:
+            pass_d[x.page] = []
+        for x in rev_list:
+            pass_d[x.page].append(x.rev_num)
+        rev_list = pass_d
+
+    return render_to_response('coding_tool/stats.html', {'wiki': wiki, 'revisions': rev_list})
