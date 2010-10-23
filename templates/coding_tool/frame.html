@@ -161,11 +161,13 @@
                 <option value="400">400</option>
             </select>
             <input class="button grid_2 omega" type="button" id="supernext_button" value="SuperNext>>" onClick="supernext()"/>
+            </form>
         </div>
 
         <div id="row_two" class="row grid_12">
+            <form action="/code/post" method="post">{% csrf_token %}
             <input value=" valid pbwiki url here" onfocus="clearText(this)" type="text" name="wiki_url" class="grid_4 alpha"/>
-            <input class="grid_1 button" type="button" value="Set Wiki" onClick="set_wiki()"/>
+            <input class="grid_1 button" type="submit" value="Set Wiki"/>
 
             <div style="width: 70px; margin-left: 10px; float:left; display: inline;" class="prefix_1">
                 Wiki page: 
@@ -178,6 +180,7 @@
 
             </select>
             <input class="button grid_2" type="button" id="diff_button" value="Diff Mode" onClick="diff_click()"/>
+            </form>
         </div>
 
         <div id="row_three" class="row grid_12">

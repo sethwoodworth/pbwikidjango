@@ -1,5 +1,7 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render_to_response
+from django.views.decorators.csrf import csrf_protect
+from django.template import RequestContext            
 
 from urllib import urlopen, urlencode
 
@@ -33,6 +35,7 @@ class PBwiki(object):
 def index(request):
     return render_to_response('coding_tool/index.html', {'msg': 'Welcome, to ...'})
 
+@csrf_protect
 def view_wiki(request, wiki_url):
     # TODO: add checks and handling for wiki url (trailing /) (.com)
     url = 'http://' + wiki_url + '.pbworks.com'
@@ -69,7 +72,7 @@ def view_wiki(request, wiki_url):
                 create = r
     revs = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
 
-    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': create, 'wiki_url': url, 'revisions': revisions, 'pages': page_list, 'revs': revs})
+    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': create, 'wiki_url': url, 'revisions': revisions, 'pages': page_list, 'revs': revs}, context_instance=RequestContext(request))
 
 def stats(request, wiki_url):
     url = 'http://' + wiki_url + '.pbworks.com'
@@ -120,3 +123,14 @@ def stats(request, wiki_url):
         rev_list = pass_d
 
     return render_to_response('coding_tool/stats.html', {'wiki': wiki, 'revisions': rev_list})
+
+@csrf_protect
+def check(request):
+    print "got a request from check()"
+    if request.POST.get('wiki_url'):
+        print request.POST.get('wiki_url')
+        wiki_url = request.POST.get('wiki_url')
+        if wiki_url[:7] == 'http://':
+            wiki_url = wiki_url[7:]
+        subdomain = wiki_url.split('.')[0]
+        return view_wiki(request, subdomain)

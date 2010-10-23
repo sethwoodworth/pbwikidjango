@@ -6,4 +6,5 @@ urlpatterns = patterns('',
     (r'^index$', 'pbwikidjango.coding_tool.views.index'),
     (r'^wiki/(?P<wiki_url>\w+)$', 'pbwikidjango.coding_tool.views.view_wiki'),
     (r'^stats/(?P<wiki_url>\w+)$', 'pbwikidjango.coding_tool.views.stats'),
+    (r'^post$', 'pbwikidjango.coding_tool.views.check'),
 )
