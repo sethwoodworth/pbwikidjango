@@ -31,20 +31,24 @@ class PBwiki(object):
         return eval(json, json_translation_table, {})  
 
 
-
 def index(request):
     return render_to_response('coding_tool/index.html', {'msg': 'Welcome, to ...'})
 
 @csrf_protect
 def view_wiki(request, wiki_url):
+    # Initial wiki load via ./wiki/$wiki_name
     # TODO: add checks and handling for wiki url (trailing /) (.com)
     url = 'http://' + wiki_url + '.pbworks.com'
-    print url
     api = PBwiki(url)
+    print "FLOW CONTROL"
+    print url
 
     # query db then api for wiki info, stored, used in stats below
     wiki = Wiki.objects.filter(wiki_url=wiki_url).all()
+    print str(wiki) + "wiki object from db!!!!"
+    
     if not wiki:
+        print "wiki didn't return properly or not found in db, fetching"
         wiki_info = api.api_call('GetWikiInfo')
         # Store wiki info
         wiki = Wiki()
@@ -56,23 +60,56 @@ def view_wiki(request, wiki_url):
         wiki.pb_usercount = wiki_info['usercount']
         wiki.pb_pagecount = wiki_info['pagecount']
         wiki.save() 
-    pb_pages = api.api_call('GetPages')
-    page_list = []
-    for page in pb_pages['pages']:
-        page_list.append(page['name'])
-    revisions = {} 
-    for page in page_list:
-        kwarg = {'page': page}
-        p_revs = api.api_call('GetPageRevisions', **kwarg)['revisions']
-        revisions[page] = p_revs
-    create = ''
-    for k in revisions:
-        for r in revisions[k]:
-            if r < create:
-                create = r
-    revs = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
+    else:
+        print "the db looks FINE, IT's FINE"
 
-    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': create, 'wiki_url': url, 'revisions': revisions, 'pages': page_list, 'revs': revs}, context_instance=RequestContext(request))
+    # do we have revisions?
+    one_wiki = wiki[0]
+    rs = Revisions.objects.filter(wiki = one_wiki.pk).all()
+    # or do the rev foreignkey like this:
+    # revs = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
+    print "LETS GET REVISIONS, YAYYYY"
+    print rs
+
+    # Either loop over returned db or call via api and store in revisions dict
+    revisions = {} 
+    if not rs:
+        print "BOO, my revisions suck. let's get some better ones"
+        pb_pages = api.api_call('GetPages')
+        page_list = []
+        print pb_pages + " I'm going to use these pages from pbwiki"
+
+        for page in pb_pages['pages']:
+            page_list.append(page['name'])
+        print page_list + " I put them in this list format, neat huh?"
+        for page in page_list:
+            kwarg = {'page': page}
+            p_revs = api.api_call('GetPageRevisions', **kwarg)['revisions']
+            revisions[page] = p_revs
+            print "This is what the revisions for that page look like:"
+            print revisions[page]
+        create = 0 
+        print "Going to set the create date of the wiki nao"
+        for k in revisions:
+            for r in revisions[k]:
+                if r < create:
+                    create = r
+    else:
+        print "naw bra, these revs are still good"
+        for i in rs.values():
+            revisions[str(i['page'])] = []
+        print "these were the pages right?"
+        print revisions
+        page_list = revisions
+        for i in revisions:
+            for j in rs.values():
+                if j['page'] == i:
+                    revisions[i].append(j['rev_num'])
+        print "OK, I got those timestamps you wanted:"
+        print revisions
+
+
+    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': wiki[0].pb_create_time, 'wiki_url': url, 'revisions': revisions, 'pages': page_list}, context_instance=RequestContext(request))
 
 def stats(request, wiki_url):
     url = 'http://' + wiki_url + '.pbworks.com'
