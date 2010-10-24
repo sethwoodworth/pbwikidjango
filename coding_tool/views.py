@@ -64,8 +64,11 @@ def view_wiki(request, wiki_url):
         print "the db looks FINE, IT's FINE"
 
     # do we have revisions?
-    one_wiki = wiki[0]
-    rs = Revisions.objects.filter(wiki = one_wiki.pk).all()
+    try:
+        one_wiki = wiki[0]
+        rs = Revisions.objects.filter(wiki = one_wiki.pk).all()
+    except:
+        rs = False
     # or do the rev foreignkey like this:
     # revs = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
     print "LETS GET REVISIONS, YAYYYY"
@@ -74,26 +77,22 @@ def view_wiki(request, wiki_url):
     # Either loop over returned db or call via api and store in revisions dict
     revisions = {} 
     if not rs:
-        print "BOO, my revisions suck. let's get some better ones"
+        # "BOO, my revisions suck. let's get some better ones"
         pb_pages = api.api_call('GetPages')
         page_list = []
-        print pb_pages + " I'm going to use these pages from pbwiki"
 
         for page in pb_pages['pages']:
             page_list.append(page['name'])
-        print page_list + " I put them in this list format, neat huh?"
         for page in page_list:
             kwarg = {'page': page}
             p_revs = api.api_call('GetPageRevisions', **kwarg)['revisions']
             revisions[page] = p_revs
-            print "This is what the revisions for that page look like:"
-            print revisions[page]
-        create = 0 
-        print "Going to set the create date of the wiki nao"
-        for k in revisions:
-            for r in revisions[k]:
-                if r < create:
-                    create = r
+            # save this to the DB while we have it
+            for rev in p_revs:
+                rev = Revisions()
+                rev.wiki = wiki[0]
+                rev.page = page
+                rev.rev_num = rev
     else:
         print "naw bra, these revs are still good"
         for i in rs.values():
