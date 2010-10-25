@@ -1,13 +1,18 @@
 <html>
     <body>
         {{ wiki }}
+        
         <hr/>
+        Hi there.<br/>
+        This is a wiki, specificially it is {{ wiki.pb_wikiname }} created at {{ wiki.pb_create_time }}.  It has {{ wiki.pb_pagecount }} pages and has {{ wiki.pb_usercount }} users.<br/>
+        {% if wiki.pb_about != "False" %}
+            The wiki describes itself thusly: "{{ wiki.pb_about }}"
+        {% endif %}
         <hr/>
-        <hr/>
-        <hr/>
-        <hr/>
-        {{ revisions }}
-        <hr/>
-        {{ db_revs }}
+        <ul>
+        {% for page in revisions %}
+            <li><strong>{{ page }}</strong>: {{ page|length }}</li>
+        {% endfor %}
+        </ul>
     </body>
 </html>

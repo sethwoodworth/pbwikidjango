@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.template import RequestContext            
 
 from urllib import urlopen, urlencode
+import datetime
 
 from pbwikidjango.coding_tool.models import Revisions, Wiki
 
@@ -94,21 +95,18 @@ def view_wiki(request, wiki_url):
                 rev.page = page
                 rev.rev_num = rev
     else:
-        print "naw bra, these revs are still good"
         for i in rs.values():
             revisions[str(i['page'])] = []
-        print "these were the pages right?"
-        print revisions
         page_list = revisions
         for i in revisions:
             for j in rs.values():
                 if j['page'] == i:
                     revisions[i].append(j['rev_num'])
-        print "OK, I got those timestamps you wanted:"
-        print revisions
 
 
-    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': wiki[0].pb_create_time, 'wiki_url': url, 'revisions': revisions, 'pages': page_list}, context_instance=RequestContext(request))
+    # embarassing, but before we send to page, reformat as a datetime object FOR REAL
+    # TODO: change the db to allow for datetime objects instead of INT()
+    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': datetime.datetime.fromtimestamp(wiki[0].pb_create_time), 'wiki_url': url, 'revisions': revisions, 'pages': page_list}, context_instance=RequestContext(request))
 
 def stats(request, wiki_url):
     url = 'http://' + wiki_url + '.pbworks.com'
@@ -116,49 +114,26 @@ def stats(request, wiki_url):
     api = PBwiki(url)
 
     wiki = Wiki.objects.filter(wiki_url=wiki_url).all()
-    if not wiki:
+    if wiki:
+        rev_list = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
 
-        wiki_info = api.api_call('GetWikiInfo')
-        # Store wiki info
-        wiki = Wiki()
-        wiki.wiki_url = wiki_url
-        wiki.pb_create_time = wiki_info['create_time']
-        wiki.pb_wikiname = wiki_info['wikiname']
-        wiki.pb_title = wiki_info['title']
-        wiki.pb_about = wiki_info['about']
-        wiki.pb_usercount = wiki_info['usercount']
-        wiki.pb_pagecount = wiki_info['pagecount']
-        wiki.save()
+        wiki[0].pb_create_time = datetime.datetime.fromtimestamp(wiki[0].pb_create_time)
 
-    rev_list = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
-    if not rev_list:
-        pb_pages = api.api_call('GetPages')
-        page_list = []
-        for page in pb_pages['pages']:
-            page_list.append(page['name'])
-
-        rev_list = {} 
-        for page in page_list:
-            kwarg = {'page': page}
-            p_revs = api.api_call('GetPageRevisions', **kwarg)['revisions']
-            rev_list[page] = p_revs
-
-            for rev in p_revs:
-                print rev
-                # store revision info(s)
-                rev = Revisions(wiki=wiki[0], page=page, rev_num=rev )
-                rev.save()
-
+        revisions = {}
+        for i in rev_list.values():
+            revisions[str(i['page'])] = []
+        page_list = revisions
+        for i in revisions:
+            for j in rev_list.values():
+                if j['page'] == i:
+                    revisions[i].append(j['rev_num'])
+        return render_to_response('coding_tool/stats.html', {'wiki': wiki[0], 'revisions': revisions })
     else:
-        # TODO: make this much much better later
-        pass_d = {}
-        for x in rev_list:
-            pass_d[x.page] = []
-        for x in rev_list:
-            pass_d[x.page].append(x.rev_num)
-        rev_list = pass_d
+        return render_to_response('coding_tool/stats.html', {'wiki': 'wiki', 'revisions': 'rev_list'})
+        
 
-    return render_to_response('coding_tool/stats.html', {'wiki': wiki, 'revisions': rev_list})
+
+
 
 @csrf_protect
 def check(request):

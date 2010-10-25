@@ -188,7 +188,7 @@
             <div class="grid_2 alpha">
                 <span id="wiki_age">
                     Created: 
-                <span id="wiki_age_timestamp">---- -- --</span>
+                    <span id="wiki_age_timestamp">{{ wiki_creation }}</span>
             </div>
             <div class="grid_2 prefix_1">
                 <span id="rev_list">
@@ -208,8 +208,6 @@
         </div> <!-- row_three -->
         </div> <!-- container_12 div-->
     </div> <!-- top_bar div-->
-
-    {{ revs }}
 
     <div id="results-box">
         <iframe id="pb_frame" name="pb_frame" frameborder="0" border="0" src="/code/stats/{{ wiki_title }}"><p>THIS WONT WORK WITHOUT IFRAMES, go <a href="http://getfirefox.com">get firefox</a></p></iframe>
