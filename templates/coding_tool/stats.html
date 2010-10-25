@@ -1,18 +1,17 @@
 <html>
     <body>
-        {{ wiki }}
-        
-        <hr/>
-        Hi there.<br/>
-        This is a wiki, specificially it is {{ wiki.pb_wikiname }} created at {{ wiki.pb_create_time }}.  It has {{ wiki.pb_pagecount }} pages and has {{ wiki.pb_usercount }} users.<br/>
-        {% if wiki.pb_about != "False" %}
-            The wiki describes itself thusly: "{{ wiki.pb_about }}"
-        {% endif %}
-        <hr/>
-        <ul>
-        {% for page in revisions %}
-            <li><strong>{{ page }}</strong>: {{ page|length }}</li>
-        {% endfor %}
-        </ul>
+        <div style="margin:auto; width:960px;">
+            <br/>
+            This is a wiki called {{ wiki.pb_wikiname }}, created at {{ wiki.pb_create_time }}.  It has {{ wiki.pb_pagecount }} pages and has {{ wiki.pb_usercount }} users.<br/>
+            {% if wiki.pb_about != "False" %}
+                The wiki describes itself thusly: "{{ wiki.pb_about }}"
+            {% endif %}
+            <hr/>
+            <ul>
+            {% for page in revisions %}
+                <li><strong>{{ page }}</strong>: {{ page|length }}</li>
+            {% endfor %}
+            </ul>
+        </div>
     </body>
 </html>
