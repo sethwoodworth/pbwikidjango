@@ -91,7 +91,7 @@ def view_wiki(request, wiki_url):
             # save this to the DB while we have it
             for rev in p_revs:
                 rev = Revisions()
-                rev.wiki = wiki[0]
+                rev.wiki = wiki
                 rev.page = page
                 rev.rev_num = rev
     else:
