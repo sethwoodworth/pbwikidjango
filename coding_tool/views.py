@@ -1,5 +1,5 @@
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, render_to_response, redirect
 from django.views.decorators.csrf import csrf_protect
 from django.template import RequestContext            
 
@@ -32,8 +32,9 @@ class PBwiki(object):
         return eval(json, json_translation_table, {})  
 
 
+@csrf_protect
 def index(request):
-    return render_to_response('coding_tool/index.html', {'msg': 'Welcome, to ...'})
+    return render_to_response('coding_tool/index.html', {'msg': 'Welcome, to ...'}, context_instance=RequestContext(request))
 
 @csrf_protect
 def view_wiki(request, wiki_url):
@@ -41,12 +42,9 @@ def view_wiki(request, wiki_url):
     # TODO: add checks and handling for wiki url (trailing /) (.com)
     url = 'http://' + wiki_url + '.pbworks.com'
     api = PBwiki(url)
-    print "FLOW CONTROL"
-    print url
 
     # query db then api for wiki info, stored, used in stats below
     wiki = Wiki.objects.filter(wiki_url=wiki_url).all()
-    print str(wiki) + "wiki object from db!!!!"
     
     if not wiki:
         print "wiki didn't return properly or not found in db, fetching"
@@ -61,19 +59,15 @@ def view_wiki(request, wiki_url):
         wiki.pb_usercount = wiki_info['usercount']
         wiki.pb_pagecount = wiki_info['pagecount']
         wiki.save() 
+        wiki = Wiki.objects.filter(wiki_url=wiki_url).all()
     else:
         print "the db looks FINE, IT's FINE"
 
     # do we have revisions?
-    try:
-        one_wiki = wiki[0]
-        rs = Revisions.objects.filter(wiki = one_wiki.pk).all()
-    except:
-        rs = False
+    one_wiki = wiki[0]
+    rs = Revisions.objects.filter(wiki = one_wiki.pk).all()
     # or do the rev foreignkey like this:
     # revs = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
-    print "LETS GET REVISIONS, YAYYYY"
-    print rs
 
     # Either loop over returned db or call via api and store in revisions dict
     revisions = {} 
@@ -89,11 +83,12 @@ def view_wiki(request, wiki_url):
             p_revs = api.api_call('GetPageRevisions', **kwarg)['revisions']
             revisions[page] = p_revs
             # save this to the DB while we have it
-            for rev in p_revs:
+            for p_rev in p_revs:
                 rev = Revisions()
-                rev.wiki = wiki
+                rev.wiki = one_wiki
                 rev.page = page
-                rev.rev_num = rev
+                rev.rev_num = p_rev
+                rev.save()
     else:
         for i in rs.values():
             revisions[str(i['page'])] = []
@@ -106,9 +101,11 @@ def view_wiki(request, wiki_url):
 
     # embarassing, but before we send to page, reformat as a datetime object FOR REAL
     # TODO: change the db to allow for datetime objects instead of INT()
-    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': datetime.datetime.fromtimestamp(wiki[0].pb_create_time), 'wiki_url': url, 'revisions': revisions, 'pages': page_list}, context_instance=RequestContext(request))
+    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': datetime.datetime.fromtimestamp(wiki[0].pb_create_time), 'wiki_timestamp': one_wiki.pb_create_time, 'wiki_url': url, 'revisions': revisions, 'pages': page_list}, context_instance=RequestContext(request))
 
 def stats(request, wiki_url):
+    print "STAT REQUST"
+    print wiki_url
     url = 'http://' + wiki_url + '.pbworks.com'
     print url
     api = PBwiki(url)
@@ -144,4 +141,5 @@ def check(request):
         if wiki_url[:7] == 'http://':
             wiki_url = wiki_url[7:]
         subdomain = wiki_url.split('.')[0]
-        return view_wiki(request, subdomain)
+        new_dir = '/code/wiki/' + subdomain
+        return redirect(new_dir)

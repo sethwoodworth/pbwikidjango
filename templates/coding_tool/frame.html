@@ -20,15 +20,16 @@
     #page_list { background: white;}
     #filter_by_days_since { background: white;}
     .small_text { font-size: 0.8em; }
-    .big_text { font-size: 16px; font-weight: bold; color: #111;  }
+    .big_text { font-size: 16px; font-weight: bold; color: #331810;  }
     .row { margin-top: 3px; }
     .grey_text {   }
     .button {
         -moz-border-radius:3px 3px 3px 3px;
-        background-color:#4B88BE;
+        background-color:#53ADCA;
         border-color:#708699;
-        height: 19px;
+        height: 20px;
         margin: 0px;
+        color: #3E1204;
     }
     #row_three { margin-top: 10px; margin-bottom: 5px; height: 20px; }
 </style>
@@ -39,7 +40,7 @@
     var revisions =  {{ revisions }};
     var filtered_revisions = {{ revisions }};
     var wiki_url = '{{ wiki_url }}';
-    var pb_wiki_create = '{{ wiki_creation }}';
+    var pb_wiki_create = '{{ wiki_timestamp }}';
         {# earliest_date.format("UTC:yyyy-mm-dd") #}
     {% endautoescape %}
 {# create variables with open scope for later #}
@@ -56,7 +57,7 @@
                 intermediate[i] = [];
                 for(var j in revisions[i]){
                     if(revisions[i][j] <= ceiling){
-                        intermediate[i].push(revisions[i][j])
+                        intermediate[i].push(revisions[i][j]);
                     };
                 };
             };
@@ -124,18 +125,20 @@
 function diff_click(){
     if(rev_index == 0){
         return false;
-    }
-    // http://testapi.pbworks.com/w/page-revisions/compare?page_name=FrontPage&rev2=1277847876&rev1=1269634147
-    // http://testapi.pbworks.com/w/page-revisions/compare?page_name=FrontPage&rev2=1277847876&rev1=1269634147
-    diff_url = wiki_url + '/w/page-revisions/compare?page_name=' + page + '&rev2=' + filtered_revisions[page][rev_index] + '&rev1=' + + filtered_revisions[page][rev_index-1];
+    };
+    var str0 = "/w/page-revisions/compare?page_name="
+    var str1 = "&rev2="
+    var str2 = "&rev1=" 
 
-    $("#pb_frame")[0].src = diff_url;
+    diff_url = wiki_url + str0 + page + str1 + filtered_revisions[page][rev_index] + str2 + filtered_revisions[page][rev_index-1];
+    var link = "<a href=\'" + diff_url + "\'>Difference between version "+ [rev_index+1] + " and " + [rev_index];
+    $('#message-box').html(link);
 
-    $("#diff_button")[0].value = '<< back';
+    //$("#diff_button")[0].value = '<< back';
 
     $('#revision_number').html(rev_index+1);
     $('#total_revision_count').html(" v " + rev_index);
-}
+    };
 
 
 </script>
@@ -190,7 +193,7 @@ function diff_click(){
                 Wiki page: 
             </div>
             <select id="page_list" class="grid_3 omega grey_text" onchange="load_page(this.value);" />
-                <option value="not_a_real_page">(Instructions)</option>
+                <option value="not_a_real_page">(Wiki Info)</option>
                 {% for page in pages %}
                     <option value="{{ page }}">{{ page }}</option>
                 {% endfor %}
@@ -227,10 +230,9 @@ function diff_click(){
     </div> <!-- top_bar div-->
 
     <div id="results-box">
+        <span style="position:absolute; width: 100%; color: #111111; text-align: center;" id="message-box"> </span>
         <iframe id="pb_frame" name="pb_frame" frameborder="0" border="0" src="/code/stats/{{ wiki_title }}"><p>THIS WONT WORK WITHOUT IFRAMES, go <a href="http://getfirefox.com">get firefox</a></p></iframe>
     </div>
 
 </body>
 </html>
-
-

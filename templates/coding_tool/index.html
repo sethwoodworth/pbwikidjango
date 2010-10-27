@@ -14,7 +14,7 @@
         #results-box { margin: 0; padding: 0; }
         #results { clear: both; width: 100%; border: solid #ccc; border-width: 1px 0px 0px 0px; overflow: auto; margin: 0; padding: 0; background-color: #fff; height: 100%; margin: 0; padding: 0; }
         html{ margin: 0; padding: 0; }
-        body{ font-size: 13px; font-color:#708699; margin: 0; padding: 0; font-family: Segoe UI,"Lucida Grande",Arial,"Liberation Sans", FreeSans, sans-serif; }
+        body{ font-size: 13px; font-color:#708699; margin: 0; padding: 0; font-family: Segoe UI,"Lucida Grande",Arial,"Liberation Sans", FreeSans, sans-serif; background: lightblue; color: #331810;}
         input, select{ padding: 0; margin: 0; border: 1px solid #708699; height: 19px; }
         #top_bar { display: block; height: 85px; background: lightBlue; border-bottom: 1px solid black; font-size: 12px; font-weight: normal; text-align: left; color: black; padding-left: 0px; padding-top: 5px; overflow: auto; }
         form{ margin: 0; padding: 0;}
@@ -28,50 +28,52 @@
         .grey_text {   }
         .button {
             -moz-border-radius:3px 3px 3px 3px;
-            background-color:#4B88BE;
+            background-color:#53ADCA;
             border-color:#708699;
-            height: 19px;
+            height: 21px;
             margin: 0px;
+            color: #3E1204;
         }
         #row_three { margin-top: 10px; margin-bottom: 5px; height: 20px; }
     </style>
 
+    <script> 
+        function clearText(f){ if (f.defaultValue==f.value) f.value = "" };
+
+        function please_wait(){
+
+            $("#submit_button")[0].value = 'loading...';
+
+        };
+    
+    </script>
     <link rel="stylesheet" href="/static/grid.css" type="text/css" media="screen, projection" />
+    <link type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/ui-darkness/jquery-ui.css" rel="stylesheet" />	
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript" src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/minified/jquery-ui.min.js"></script>
 
     </head>
     <body>
-            <div id="header">
-                <div id="logo">
-                    <h1>coding_tool</h1>
-                    {% block menu %}
-                    <ul id="menu">
-                        {% if user %}
-                        <li><a href="/report/dashboard">{{ user }}</a></li>
-                        <li><a href="/report/add_packages">settings</a></li>
-                        <li>instructions</li>
-                        <li><a href="/accounts/logout">sign-out</a></li>
-                        {% else %}
-                        <li><a href="/accounts/login">sign-in</a> / <a href="/accounts/register">sign-up</a></li>
-                        {% endif %}
-                    </ul>
-                    {% endblock %}
-                </div>
-                <br/>
-                <span id="tagline" class="small">
-                    By Android developers, for Android developers
-                </span>
-                <br/>
-                <div id="pagetitle">
-                    {% block subtitle %} {% endblock %}
-                </div>
-            </div>
+    <div style="background: lightBlue; position: absolute; top: 50%; margin-top: -40px; margin-left: -200px; left: 50%;">
+    <div style="height:80px;" class="container_8">
 
-            <div id="content">
-                {% block content %}
-                {% endblock %}
+        <div id="row_one" class="row grid_8">
+            <form id="get_revs" name="get_revs">
+            <div>
+                <h1 style="display: inline">PBwiki Coding Tool</h1> by <a href="http://sethish.com">sethish</a> &amp; <a href="http://madebyparker.com">parker</a>
             </div>
-            <div id="footer">
-            </div>
+            </form>
         </div>
+        <br/>
+
+        <div id="row_two" class="row grid_8" style="width: 403px;">
+            <form action="/code/post" method="post">{% csrf_token %}
+            <input value=" valid pbwiki url here" onfocus="clearText(this)" type="text" name="wiki_url" class="grid_6 alpha" style="width: 300px;"/>
+            <input id="submit_button" class="grid_1 button" type="submit" onClick="please_wait()" value="Set Wiki"/>
+            </form>
+        </div>
+
+    </div>
+    </div>
     </body>
 </html>
