@@ -31,6 +31,15 @@
         margin: 0px;
         color: #3E1204;
     }
+    .grey-button {
+        -moz-border-radius:3px 3px 3px 3px;
+        background-color:#777777;
+        border-color:#708699;
+        height: 20px;
+        margin: 0px;
+        color: #3E1204;
+        text-decoration: line-through;
+    }
     #row_three { margin-top: 10px; margin-bottom: 5px; height: 20px; }
 </style>
 <link rel="stylesheet" href="/static/grid.css" type="text/css" media="screen, projection" />
@@ -63,14 +72,16 @@
             };
         };
         filtered_revisions = intermediate;
-        load_page('FrontPage', filtered_revisions['FrontPage'].length-1);
+        page = 'FrontPage';
+        $("#page_list")[0].value = page;
+        load_page(page, filtered_revisions[page].length-1);
     };
 
     function update_reporting(){
         // takes no values, works off global, call at the /end/ of other func
         page = $("#page_list")[0].value;
         $('#revision_number').html(rev_index+1);
-        $('#total_revision_count').html("of " + filtered_revisions['FrontPage'].length);
+        $('#total_revision_count').html("of " + filtered_revisions[page].length);
     };
 
     function load_page(page, index){
@@ -89,6 +100,7 @@
         $("#pb_frame")[0].src = new_url;
         // store current revision globally
         rev_index = index;
+        diff_link()
         update_reporting();
     };
 
@@ -122,22 +134,24 @@
         load_page(page, index);
     };
 
-function diff_click(){
+function diff_link(){
     if(rev_index == 0){
         return false;
     };
+    page = $("#page_list")[0].value;
     var str0 = "/w/page-revisions/compare?page_name="
     var str1 = "&rev2="
     var str2 = "&rev1=" 
 
     diff_url = wiki_url + str0 + page + str1 + filtered_revisions[page][rev_index] + str2 + filtered_revisions[page][rev_index-1];
-    var link = "<a href=\'" + diff_url + "\'>Difference between version "+ [rev_index+1] + " and " + [rev_index];
+    var link = "<a href=\'" + diff_url + "\'>Diff between v"+ [rev_index+1] + " & v" + [rev_index];
+
     $('#message-box').html(link);
 
     //$("#diff_button")[0].value = '<< back';
 
-    $('#revision_number').html(rev_index+1);
-    $('#total_revision_count').html(" v " + rev_index);
+    //$('#revision_number').html(rev_index+1);
+    //$('#total_revision_count').html(" v " + rev_index);
     };
 
 
@@ -180,7 +194,7 @@ function diff_click(){
                 <option value="100">100</option>
                 <option value="400">400</option>
             </select>
-            <input class="button grid_2 omega" type="button" id="supernext_button" value="SuperNext>>" onClick="supernext()"/>
+            <input class="grey-button grid_2 omega" type="button" id="supernext_button" value="SuperNext>>" onClick="supernext()"/>
             </form>
         </div>
 
@@ -199,7 +213,7 @@ function diff_click(){
                 {% endfor %}
 
             </select>
-            <input class="button grid_2" type="button" id="diff_button" value="Diff Mode" onClick="diff_click()"/>
+            <input class="grey-button grid_2" type="button" id="diff_button" value="Version Diff" onClick="diff_click()"/>
             </form>
         </div>
 
@@ -223,6 +237,7 @@ function diff_click(){
                 <input class="button grid_1" type="button" value="< Older" onClick="prev_rev()" id="prev_button"/>
                 <input class="button grid_1" type="button" value="Newer >" onClick="next_rev()" id="next_button"/>
                 <input class="button grid_1" type="button" value="Last >>" onClick="last_rev()" id="last_button"/>
+                <span style="color: #111111;" id="message-box"> </span>
             </div>
         </form>
         </div> <!-- row_three -->
@@ -230,7 +245,6 @@ function diff_click(){
     </div> <!-- top_bar div-->
 
     <div id="results-box">
-        <span style="position:absolute; width: 100%; color: #111111; text-align: center;" id="message-box"> </span>
         <iframe id="pb_frame" name="pb_frame" frameborder="0" border="0" src="/code/stats/{{ wiki_title }}"><p>THIS WONT WORK WITHOUT IFRAMES, go <a href="http://getfirefox.com">get firefox</a></p></iframe>
     </div>
 
