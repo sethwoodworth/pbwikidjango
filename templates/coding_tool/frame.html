@@ -70,7 +70,7 @@
         // takes no values, works off global, call at the /end/ of other func
         page = $("#page_list")[0].value;
         $('#revision_number').html(rev_index+1);
-        $('#total_revision_count').html("of " + filtered_revisions[page].length);
+        $('#total_revision_count').html("of " + filtered_revisions['FrontPage'].length);
     };
 
     function load_page(page, index){
