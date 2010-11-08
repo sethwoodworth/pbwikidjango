@@ -72,6 +72,19 @@
             };
         };
         filtered_revisions = intermediate;
+
+        // Resetting page_list menu
+        var pages = $("#page_list")[0].length=0; //erase old list
+        //<option value="not_a_real_page">(Wiki Info)</option>
+        //new Option(text, value, defaultSelected, selected)
+        $("#page_list").append(new Option("(Wiki Info)", "not_a_real_page", true, true)); //add stats page
+
+        // loop over pages in revisions, adding options to list
+        for (var key_name in filtered_revisions) {
+            $("#page_list").append( new Option(key_name, key_name, false, false));
+        };
+
+
         page = 'FrontPage';
         $("#page_list")[0].value = page;
         load_page(page, filtered_revisions[page].length-1);
