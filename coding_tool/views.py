@@ -20,12 +20,12 @@ class PBwiki(object):
         kwargs['_type'] = 'jsontext' # always return json
         url_args = '/'.join(["%s/%s" % (k,v) for k, v in kwargs.iteritems()])
         call_url = '%s/api_v2/op/%s/%s' % (self.url, op, url_args)
-        print call_url
+        #print call_url
 
         resp = urlopen(call_url)
         json = '\n'.join(resp.read().split('\n')[1:-2])
         resp.close()
-        print 'url fetched, closed'
+        #print 'url fetched, closed'
 
         # translate json into py dict
         json_translation_table = {'true': True, 'false': False, 'null': None}
@@ -38,6 +38,7 @@ def index(request):
 
 @csrf_protect
 def view_wiki(request, wiki_url):
+    rs = None
     # Initial wiki load via ./wiki/$wiki_name
     # TODO: add checks and handling for wiki url (trailing /) (.com)
     url = 'http://' + wiki_url + '.pbworks.com'
@@ -45,9 +46,17 @@ def view_wiki(request, wiki_url):
 
     # query db then api for wiki info, stored, used in stats below
     wiki = Wiki.objects.filter(wiki_url=wiki_url).all()
+    # do we have revisions?
+    if wiki:
+        rs = Revisions.objects.filter(wiki = wiki[0].pk).all()
+
+    # or do the rev foreignkey like this:
+
+    # Either loop over returned db or call via api and store in revisions dict
+    revisions = {} 
     
     if not wiki:
-        print "wiki didn't return properly or not found in db, fetching"
+        #print "wiki didn't return properly or not found in db, fetching"
         wiki_info = api.api_call('GetWikiInfo')
         # Store wiki info
         wiki = Wiki()
@@ -59,22 +68,19 @@ def view_wiki(request, wiki_url):
         wiki.pb_usercount = wiki_info['usercount']
         wiki.pb_pagecount = wiki_info['pagecount']
         wiki.save() 
+        #print "saving fetched wiki"
         wiki = Wiki.objects.filter(wiki_url=wiki_url).all()
-    else:
-        print "the db looks FINE, IT's FINE"
+        #print wiki
+    #else:
+        #print "the db looks FINE, IT's FINE"
 
-    # do we have revisions?
-    one_wiki = wiki[0]
-    rs = Revisions.objects.filter(wiki = one_wiki.pk).all()
-    # or do the rev foreignkey like this:
-    # revs = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
-
-    # Either loop over returned db or call via api and store in revisions dict
-    revisions = {} 
     if not rs:
         # "BOO, my revisions suck. let's get some better ones"
+        # TODO Add conditional to see if my revision count is good before I run this
         pb_pages = api.api_call('GetPages')
         page_list = []
+
+        one_wiki = wiki[0]
 
         for page in pb_pages['pages']:
             page_list.append(page['name'])
@@ -89,14 +95,20 @@ def view_wiki(request, wiki_url):
                 rev.page = page
                 rev.rev_num = p_rev
                 rev.save()
+        #print revisions
+        one_wiki.c_revisions = revisions
+        one_wiki.save()
     else:
+        one_wiki = wiki[0]
         for i in rs.values():
             revisions[str(i['page'])] = []
         page_list = revisions
         for i in revisions:
             for j in rs.values():
                 if j['page'] == i:
-                    revisions[i].append(j['rev_num'])
+                    revisions[i].append(str(j['rev_num']))
+        one_wiki.c_revisions = revisions
+        one_wiki.save()
 
 
     # embarassing, but before we send to page, reformat as a datetime object FOR REAL
@@ -104,10 +116,10 @@ def view_wiki(request, wiki_url):
     return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': datetime.datetime.fromtimestamp(wiki[0].pb_create_time), 'wiki_timestamp': one_wiki.pb_create_time, 'wiki_url': url, 'revisions': revisions, 'pages': page_list}, context_instance=RequestContext(request))
 
 def stats(request, wiki_url):
-    print "STAT REQUST"
-    print wiki_url
+    #print "STAT REQUST"
+    #print wiki_url
     url = 'http://' + wiki_url + '.pbworks.com'
-    print url
+    #print url
     api = PBwiki(url)
 
     wiki = Wiki.objects.filter(wiki_url=wiki_url).all()
@@ -134,9 +146,8 @@ def stats(request, wiki_url):
 
 @csrf_protect
 def check(request):
-    print "got a request from check()"
     if request.POST.get('wiki_url'):
-        print request.POST.get('wiki_url')
+        #print request.POST.get('wiki_url')
         wiki_url = request.POST.get('wiki_url')
         if wiki_url[:7] == 'http://':
             wiki_url = wiki_url[7:]
