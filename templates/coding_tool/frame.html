@@ -52,7 +52,7 @@
     var pb_wiki_create = '{{ wiki_timestamp }}';
         {# earliest_date.format("UTC:yyyy-mm-dd") #}
     {% endautoescape %}
-{# create variables with open scope for later #}
+    {# create variables with open scope for later #}
     var in_diff_mode = false;
     var rev_index = 0;
     
@@ -221,7 +221,7 @@ function diff_link(){
             </div>
             <select id="page_list" class="grid_3 omega grey_text" onchange="load_page(this.value);" />
                 <option value="not_a_real_page">(Wiki Info)</option>
-                {% for page in pages %}
+                {% for page in revisions.keys %}
                     <option value="{{ page }}">{{ page }}</option>
                 {% endfor %}
 
