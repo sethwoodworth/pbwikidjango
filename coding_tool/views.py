@@ -1,7 +1,7 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render_to_response, redirect
 from django.views.decorators.csrf import csrf_protect
-from django.template import RequestContext            
+from django.template import RequestContext
 
 from urllib import urlopen, urlencode
 import datetime
@@ -29,7 +29,7 @@ class PBwiki(object):
 
         # translate json into py dict
         json_translation_table = {'true': True, 'false': False, 'null': None}
-        return eval(json, json_translation_table, {})  
+        return eval(json, json_translation_table, {})
 
 
 @csrf_protect
@@ -53,8 +53,8 @@ def view_wiki(request, wiki_url):
     # or do the rev foreignkey like this:
 
     # Either loop over returned db or call via api and store in revisions dict
-    revisions = {} 
-    
+    revisions = {}
+
     if not wiki:
         #print "wiki didn't return properly or not found in db, fetching"
         wiki_info = api.api_call('GetWikiInfo')
@@ -67,7 +67,7 @@ def view_wiki(request, wiki_url):
         wiki.pb_about = wiki_info['about']
         wiki.pb_usercount = wiki_info['usercount']
         wiki.pb_pagecount = wiki_info['pagecount']
-        wiki.save() 
+        wiki.save()
         #print "saving fetched wiki"
         wiki = Wiki.objects.filter(wiki_url=wiki_url).all()
         #print wiki
@@ -113,33 +113,29 @@ def view_wiki(request, wiki_url):
 
     # embarassing, but before we send to page, reformat as a datetime object FOR REAL
     # TODO: change the db to allow for datetime objects instead of INT()
-    return render_to_response('coding_tool/frame.html', {'wiki_title': wiki_url ,'wiki_creation': datetime.datetime.fromtimestamp(wiki[0].pb_create_time), 'wiki_timestamp': one_wiki.pb_create_time, 'wiki_url': url, 'revisions': revisions, 'pages': page_list}, context_instance=RequestContext(request))
+    return render_to_response('coding_tool/frame.html', {
+            'wiki_title': wiki_url ,
+            'wiki_creation': datetime.datetime.fromtimestamp(wiki[0].pb_create_time),
+            'wiki_timestamp': one_wiki.pb_create_time,
+            'wiki_url': url,
+            'revisions': revisions,
+            'pages': page_list
+            },
+         context_instance=RequestContext(request))
+
 
 def stats(request, wiki_url):
-    #print "STAT REQUST"
-    #print wiki_url
-    url = 'http://' + wiki_url + '.pbworks.com'
-    #print url
-    api = PBwiki(url)
 
     wiki = Wiki.objects.filter(wiki_url=wiki_url).all()
-    if wiki:
-        rev_list = Revisions.objects.filter(wiki__pb_wikiname=wiki_url).all()
+    one_wiki = wiki[0]
+    dict = eval(one_wiki.c_revisions)
+    for key in dict:
+        list = dict[key]
+        create_time = datetime.datetime.fromtimestamp(int(list[0]))
+        dict[key] = [create_time, len(list)]
+    one_wiki.pb_create_time = datetime.datetime.fromtimestamp(one_wiki.pb_create_time)
 
-        wiki[0].pb_create_time = datetime.datetime.fromtimestamp(wiki[0].pb_create_time)
-
-        revisions = {}
-        for i in rev_list.values():
-            revisions[str(i['page'])] = []
-        page_list = revisions
-        for i in revisions:
-            for j in rev_list.values():
-                if j['page'] == i:
-                    revisions[i].append(j['rev_num'])
-        return render_to_response('coding_tool/stats.html', {'wiki': wiki[0], 'revisions': revisions })
-    else:
-        return render_to_response('coding_tool/stats.html', {'wiki': 'wiki', 'revisions': 'rev_list'})
-        
+    return render_to_response('coding_tool/stats.html', {'wiki': one_wiki, 'revisions': dict })
 
 
 
