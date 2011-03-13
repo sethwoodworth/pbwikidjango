@@ -8,6 +8,10 @@
             {% endif %}
             <hr/>
             <ul>
+            {% for page,list in revisions.items %}
+                <li><strong>{{ page }}</strong>, created {{ list.0 }} ({{ list.1 }} edits)</li>
+            {% endfor %}
+
             {% for page in revisions %}
                 <li><strong>{{ page }}</strong>: {{ page|length }}</li>
             {% endfor %}
