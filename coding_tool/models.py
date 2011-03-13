@@ -19,7 +19,7 @@ class Revisions(models.Model):
     rev_num = models.IntegerField()
 
     def __unicode__(self):
-        return self.page + ' ' + str(self.rev_num)
+        return self.wiki.wiki_url + ' ' + self.page + ' ' + str(self.rev_num)
 
     class Meta:
         unique_together = ("page", "rev_num")
